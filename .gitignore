@@ -1,0 +1,22 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# ---- pyinstaller 打包产物 ----
+build/
+dist/
+*.spec
+
+# ---- 单元测试 / IDE ----
+.pytest_cache/
+.idea/
+.vscode/
+.DS_Store
+
+# ---- 个人对账项目数据（含账务信息，不入库） ----
+*.json
+银行对账结果_*.xlsx
+银行对账结果_*.csv

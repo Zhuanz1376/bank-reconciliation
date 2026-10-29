@@ -1,0 +1,52 @@
+# ============================================================
+# GitHub Actions：云端自动打包 Windows exe
+# ------------------------------------------------------------
+# 用途：开发机是 macOS 时，把代码推到 GitHub，由 GitHub 免费
+# 提供的 Windows 虚拟机（windows-latest）执行 pyinstaller 打包，
+# 打好的 exe 在仓库 Actions 页面下载（Artifacts 区）。
+#
+# 使用：
+#   1. 本目录推送到 GitHub 仓库（公共仓库免费、不限时长）；
+#   2. 每次 push 自动触发，或到 Actions 页面手动点 Run workflow；
+#   3. 运行完成后进入该次运行页面，下载 BankRecon-windows-exe。
+# ============================================================
+name: Build Windows exe
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch: {}        # 允许在网页上手动触发
+
+jobs:
+  build-exe:
+    runs-on: windows-latest    # GitHub 提供的 Windows 环境
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 安装依赖（openpyxl + pyinstaller）
+        env:
+          PYTHONUTF8: "1"
+        run: python -m pip install openpyxl pyinstaller
+
+      - name: 打包 exe（与 打包exe.bat 同一条命令）
+        env:
+          PYTHONUTF8: "1"
+        run: >
+          python -m PyInstaller -F -w -n BankRecon
+          --add-data "示例数据_单位银行存款日记账.csv;."
+          --add-data "示例数据_银行对账单.csv;."
+          --add-data "示例数据_期初余额调节表.csv;."
+          银行对账系统.py
+
+      - name: 上传 exe 产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: BankRecon-windows-exe
+          path: dist/BankRecon.exe
+          if-no-files-found: error
