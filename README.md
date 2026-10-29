@@ -1,40 +1,38 @@
 # 出纳管理之银行对账系统 v2
 
-> 一个用 Python + Tkinter 开发的桌面小产品：把**单位银行存款日记账**与**银行对账单**自动逐笔核对，区分已达 / 未达账项，自动生成《银行存款余额调节表》，并可一键打包成 exe 交付客户。
+> 一个用 Python + Tkinter 开发的桌面小工具：把**单位银行存款日记账**与**银行对账单**自动逐笔核对，区分已达 / 未达账项，自动生成《银行存款余额调节表》，并可一键打包成 exe 交付使用。
 >
-> 对账口径与学习通章节点 **3.5.5** 保持一致，并在其基础上做了容错匹配、余额自动滚动、项目持久化三项增强。
+> 核心对账口径在标准的"四字段全等严格匹配"基础上，增加了两轮容错匹配、余额自动滚动、项目持久化三项能力，以适配真实录入场景中的日期 / 票号写法差异。
 
 ---
 
-## 一、成果链总览（对应课程要求"一条链"）
+## 一、项目产出总览
 
-| 成果 | 载体 | 说明 |
+| 产出 | 载体 | 说明 |
 |---|---|---|
 | ① Python 核心代码 | `bank_core.py` | 对账算法层：三轮匹配、未达账四分类、滚动余额、调节表计算。纯函数、不依赖界面 |
-| ② AI 协作的 GUI 系统 | `银行对账系统.py` | Tkinter 桌面界面：录入 / 导入 / 对账 / 调节表 / 导出，只负责"收数据 → 调核心 → 展示" |
+| ② GUI 桌面程序 | `银行对账系统.py` | Tkinter 桌面界面：录入 / 导入 / 对账 / 调节表 / 导出，只负责"收数据 → 调核心 → 展示" |
 | ③ 质量保障 | `test_bank_core.py` | 18 项单元测试（Python 自带 unittest，无需装 pytest），覆盖严格口径、容错口径、滚动余额、JSON 往返、CSV 导入 |
-| ④ 交付客户的 exe | `打包exe.bat` + `dist/` | pyinstaller 一键打包单文件可执行程序，示例数据内嵌，客户双击即用 |
-| ⑤ 开源社区 | 本目录 + `.gitignore` | 直接 `git init` 后推送到 gitee / github 即可开源（见第七节） |
+| ④ 交付 exe | `打包exe.bat` + `.github/workflows/build-exe.yml` | pyinstaller 一键打包单文件可执行程序；示例数据内嵌，双击即用；Windows exe 由 GitHub Actions 云端打包 |
+| ⑤ 版本管理 | 本目录 + `.gitignore` | 直接 git 推送到 GitHub 即可开源（见第七节） |
 
 ## 二、文件结构
 
 ```
 银行对账系统/
-├── bank_core.py                    # ★ 核心对账逻辑层（成果①）
-├── 银行对账系统.py                  # ★ GUI 主程序（成果②，入口文件）
-├── 银行对账系统_单文件版.py         # v1 历史版本（未分层，留作演进记录）
-├── test_bank_core.py               # ★ 18 项单元测试（成果③）
+├── bank_core.py                    # ★ 核心对账逻辑层（产出①）
+├── 银行对账系统.py                  # ★ GUI 主程序（产出②，入口文件）
+├── test_bank_core.py               # ★ 18 项单元测试（产出③）
 ├── requirements.txt                # 运行依赖（仅 openpyxl）
-├── 打包exe.bat                     # ★ Windows 一键打包脚本（成果④）
-├── .gitignore                      # git 忽略规则（成果⑤）
+├── 打包exe.bat                     # ★ Windows 一键打包脚本（产出④）
+├── .github/workflows/build-exe.yml # CI/CD：push 后云端打包 Windows exe
+├── .gitignore                      # git 忽略规则（产出⑤）
 ├── README.md                       # 本文档
-├── 核心技术栈.md                    # 演讲前需要掌握的知识清单
-├── 演讲稿.md                        # 10 分钟课堂演讲稿
-├── 示例数据_单位银行存款日记账.csv   # 教材表 3-15 示例数据（25 笔）
-├── 示例数据_银行对账单.csv          # 教材表 3-16 示例数据（26 笔）
-├── 示例数据_期初余额调节表.csv      # 教材表 3-14 示例数据（期初 602,349 / 616,149）
-├── 期初银行存款余额调节表.xlsx      # 四 Sheet 模板（导入演示用）
-└── dist/                           # pyinstaller 打包产物（BankRecon，可改名 exe）
+├── 示例数据_单位银行存款日记账.csv   # 内置示例账套·日记账（25 笔）
+├── 示例数据_银行对账单.csv          # 内置示例账套·对账单（26 笔）
+├── 示例数据_期初余额调节表.csv      # 内置示例账套·期初（期初 602,349 / 616,149）
+├── 期初银行存款余额调节表.xlsx      # 四 Sheet 模板（导入用）
+└── dist/                           # pyinstaller 打包产物
 ```
 
 ## 三、快速开始
@@ -59,7 +57,7 @@ python3 test_bank_core.py
 - 企业期末账面 **741,709.78**，银行期末对账单 **450,087.78**；
 - 两端调整后余额 **448,067.78**，**对账平衡** ✔。
 
-## 四、对账算法详解（演讲重点）
+## 四、对账算法详解
 
 ### 4.1 数据口径
 
@@ -71,7 +69,7 @@ python3 test_bank_core.py
 
 | 轮次 | 等级 | 匹配条件 | 界面标记 | 解决的问题 |
 |---|---|---|---|---|
-| 第 1 轮 | 严格 | **结算方式 + 票号 + 借方金额 + 贷方金额** 四字段全等 | √ | 与 3.5.5 判定口径完全一致，结果可信 |
+| 第 1 轮 | 严格 | **结算方式 + 票号 + 借方金额 + 贷方金额** 四字段全等 | √ | 四字段全等判定，结果可信 |
 | 第 2 轮 | 容错 | 票号 + 金额 + 同方向 | ？ | 两边日期写法不一致（12.1 / 2025-12-01）导致的漏配 |
 | 第 3 轮 | 容错 | 日期 + 金额 + 同方向 | ？ | 无票号、或票号写法不同的流水兜底 |
 
@@ -133,7 +131,7 @@ python3 test_bank_core.py
 
 日期兼容 `2025-12-08 / 2025.12.8 / 2025/12/8`；金额兼容千分位与 `￥` 前缀。
 
-## 六、pyinstaller 打包交付（成果④）
+## 六、pyinstaller 打包交付（产出④）
 
 ### Windows（交付客户，双击 `打包exe.bat`）
 
@@ -161,7 +159,7 @@ python3 -m PyInstaller -F -w -n BankRecon \
 > 注意：Windows 下 `--add-data` 分隔符是 `;`，mac/linux 是 `:`。
 > 本仓库已在 mac 上完成打包验证（主程序、核心模块、3 个 CSV 均在单文件包内）。
 
-### 打包关键参数速记（演讲问答）
+### 打包关键参数速记
 
 | 参数 | 作用 |
 |---|---|
@@ -177,13 +175,13 @@ python3 -m PyInstaller -F -w -n BankRecon \
 
 | 方案 | 做法 | 成本 |
 |---|---|---|
-| **① GitHub Actions 云端打包（推荐）** | 仓库里已配好 `.github/workflows/build-exe.yml`：把代码 push 到 GitHub（公共仓库），Actions 会自动在 GitHub 的 Windows 虚拟机里执行与 bat 相同的打包命令，跑完在 **Actions → 本次运行 → Artifacts** 下载 `BankRecon.exe` | 免费，约 3 分钟 |
+| **① GitHub Actions 云端打包（推荐）** | 仓库里已配好 `.github/workflows/build-exe.yml`：把代码 push 到 GitHub，Actions 会自动在 GitHub 的 Windows 虚拟机里执行与 bat 相同的打包命令，跑完在 **Actions → 本次运行 → Artifacts** 下载 `BankRecon.exe` | 免费，约 3 分钟 |
 | ② 虚拟机装 Windows | 用 UTM（免费）或 VMware Fusion（个人免费）/ Parallels（试用）装 Windows，虚拟机里装 Python 后双击 `打包exe.bat` | 首次装系统 1–2 小时 |
 | ③ 借一台 Windows 电脑 | 整个 `银行对账系统/` 文件夹拷 U 盘，装好 Python 后双击 `打包exe.bat`，完事拷回 `dist\BankRecon.exe` | 几分钟 |
 
-演讲口径：**"我的开发机是 Mac，Windows exe 由 GitHub Actions 的云端 Windows 环境自动打包——push 代码即出 exe，这也是开源项目标准的 CI/CD 做法。"**（本机 `dist/BankRecon` 是 mac 版打包产物，用于本机演示与验证。）
+> 本机是 Mac，Windows exe 由 GitHub Actions 的云端 Windows 环境自动打包——push 代码即出 exe，这也是开源项目标准的 CI/CD 做法。（本机 `dist/BankRecon` 是 mac 版打包产物，用于本机验证。）
 
-## 七、git / gitee 上传开源（成果⑤）
+## 七、git 上传与开源（产出⑤）
 
 ```bash
 cd 银行对账系统
@@ -193,10 +191,10 @@ git init
 git add .
 git commit -m "feat: 银行对账系统 v2 —— 三轮匹配+滚动余额+项目持久化，18项单测通过"
 
-# 2. 在 gitee.com 新建一个空仓库（不要勾选初始化 README），拿到地址后：
-git remote add origin https://gitee.com/<你的用户名>/bank-reconciliation.git
-git branch -M master
-git push -u origin master
+# 2. 在 GitHub 新建一个空仓库（不要勾选初始化 README），拿到地址后：
+git remote add origin https://github.com/<你的用户名>/bank-reconciliation.git
+git branch -M main
+git push -u origin main
 
 # 3. 以后每次完善后：
 git add . && git commit -m "说明本次改动" && git push
@@ -211,13 +209,13 @@ git add . && git commit -m "说明本次改动" && git push
 | # | 完善点 | 价值 |
 |---|---|---|
 | 1 | 核心逻辑抽到 `bank_core.py`，界面只做展示 | 算法可单测、可复用（换 Web 界面不用改算法） |
-| 2 | 严格匹配升级为 3.5.5 的**四字段全等**口径，再加两轮容错 | 既与课程口径一致，又解决实际录入差异 |
+| 2 | 严格匹配采用**四字段全等**口径，再加两轮容错 | 既覆盖标准四字段全等口径，又解决实际录入差异 |
 | 3 | 期末余额**自动滚动**计算 | 少填一列，杜绝手填错误 |
 | 4 | **项目保存 / 打开**（JSON） | 关软件不丢账，exe 客户可续作 |
 | 5 | 双击流水行弹窗修改、菜单栏、导出含匹配等级 | 操作效率与可追溯性 |
 | 6 | 18 项单元测试 + 打包验证 | 改动有护栏，交付有底气 |
 
-### 已知不足（后续改进方向，也是对老师参考版的改进点）
+### 已知不足（后续改进方向）
 
 1. **容错匹配仍可能误配**：同名票号 + 同金额的两笔无关流水会被第 2 轮配对。改进方向：加入日期接近度校验，或提供"人工勾对"界面把 ？改判为未达；
 2. **多借多贷拆分业务**：一笔业务拆成多笔入账时无法自动匹配。改进方向：支持"一对多"合并匹配或金额分摊；
@@ -226,4 +224,4 @@ git add . && git commit -m "说明本次改动" && git push
 
 ---
 
-*课程：出纳管理之银行对账案例（学习通章节点 3.5.5）｜ 技术栈：Python 3 · Tkinter · openpyxl · pyinstaller · git/gitee*
+*技术栈：Python 3 · Tkinter · openpyxl · pyinstaller · git / GitHub*

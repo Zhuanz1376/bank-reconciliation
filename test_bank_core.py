@@ -7,7 +7,7 @@
     cd 银行对账系统
     python3 test_bank_core.py
 
-测试数据：内置示例账套（与教材表3-14/3-15/3-16 一致），标准答案：
+测试数据：内置示例账套，标准答案：
   企业期初 602,349.00    银行期初 616,149.00
   已达账项 22 对（全部严格匹配）
   企业方未达 4 笔：Z1003(借17,000) Z1015(借126,000) Z2002(贷46,500) Z1010(贷98,520)
@@ -33,7 +33,7 @@ def load_sample_records():
 
 
 class TestSampleReconciliation(unittest.TestCase):
-    """示例账套整链对账：结果必须与教材标准答案一致。"""
+    """示例账套整链对账：结果与预期标准答案一致。"""
 
     @classmethod
     def setUpClass(cls):
@@ -101,7 +101,7 @@ class TestStrictMatching(unittest.TestCase):
         self.assertEqual(res["stats"]["严格匹配对数"], 1)
 
     def test_method_differs_not_strict(self):
-        """结算方式不同 → 严格不匹配（3.5.5 口径），票号+金额容错兜底。"""
+        """结算方式不同 → 严格不匹配，票号+金额容错兜底。"""
         res = self._reconcile_two(
             dict(date="2025-12-01", settlement_method="202", ticket_no="Z1", debit=0, credit=100),
             dict(date="2025-12-01", settlement_method="电汇", ticket_no="Z1", debit=0, credit=100))
@@ -109,7 +109,7 @@ class TestStrictMatching(unittest.TestCase):
         self.assertEqual(res["stats"]["容错匹配对数"], 1, "应由第2轮票号+金额容错兜底")
 
     def test_amount_differs_not_matched(self):
-        """票号相同但金额不同（教材 Z1010 案例）→ 双方均未达，不强行配对。"""
+        """票号相同但金额不同（Z1010 案例）→ 双方均未达，不强行配对。"""
         res = self._reconcile_two(
             dict(date="2025-12-20", settlement_method="202", ticket_no="Z1010", debit=0, credit=98520),
             dict(date="2025-12-13", settlement_method="202", ticket_no="Z1010", debit=0, credit=178000))

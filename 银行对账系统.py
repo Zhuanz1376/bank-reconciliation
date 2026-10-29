@@ -3,7 +3,7 @@
 ================================================================
 【出纳管理之银行对账系统】 Bank Reconciliation System  （v2 分层版）
 ================================================================
-本项目成果链（对应学习通章节点 3.5.5）：
+本项目成果链：
     ① python 核心代码   -> bank_core.py（对账算法，纯函数，可单测）
     ② AI 协作的 GUI     -> 银行对账系统.py（本文件，Tkinter 桌面界面）
     ③ 交付客户的 exe    -> pyinstaller 打包（见 打包exe.bat / README.md）
@@ -11,12 +11,12 @@
 
 v2 相对 v1（单文件版 银行对账系统_单文件版.py）的完善点：
     1. 核心逻辑与界面解耦：对账算法抽到 bank_core.py，18 个单元测试保障；
-    2. 对账口径对齐 3.5.5：第一轮【严格匹配】= 结算方式+票号+借方+贷方 四字段全等；
+    2. 对账口径：第一轮【严格匹配】= 结算方式+票号+借方+贷方 四字段全等；
        同时保留两轮【容错匹配】（票号+金额 / 日期+金额），解决实际录入差异，
        界面上用 √（严格）/ ？（容错，建议人工复核）/ 空（未达）三种标记区分；
     3. 期末余额全自动滚动计算（期初 + 逐笔 借-贷），不再需要手工填期末余额；
     4. 新增【保存项目 / 打开项目】：全部数据存为 .json，关掉软件不丢账
-       （这也是老师参考版目前缺少、exe 交付客户后必需的能力）；
+       （这也是多数基础对账示例普遍缺失、而实际交付必需的能力）；
     5. 新增双击流水行弹窗修改；新增菜单栏；导入导出保留并标注匹配等级。
 
 运行：python3 银行对账系统.py     依赖：openpyxl（pip install openpyxl）
@@ -98,7 +98,7 @@ class BankReconciliationApp:
     def show_rules(self):
         messagebox.showinfo("对账口径说明",
                             "第1轮 严格匹配：结算方式+票号+借方金额+贷方金额 四字段全等\n"
-                            "        （与学习通 3.5.5 判定口径完全一致），标记 √\n\n"
+                            "        （四字段全等判定），标记 √\n\n"
                             "第2轮 容错匹配：票号+金额+同方向\n"
                             "        （解决两边日期写法不一致导致漏配），标记 ？\n\n"
                             "第3轮 容错匹配：日期+金额+同方向\n"
@@ -180,7 +180,7 @@ class BankReconciliationApp:
         ttk.Button(mid, text="删除选中行", command=self.delete_selected).grid(row=1, column=9, padx=4, pady=(4, 0))
 
         hint = ("说明：借方、贷方只填其中一侧。双击流水行可修改。"
-                "对账标记图例：√=严格匹配（四字段全等，3.5.5 口径）　"
+                "对账标记图例：√=严格匹配（四字段全等）　"
                 "？=容错匹配（票号/日期+金额，建议人工复核）　空=未达账")
         ttk.Label(mid, text=hint, foreground="#666").grid(
             row=2, column=0, columnspan=10, sticky="w", pady=(6, 0))
@@ -569,7 +569,7 @@ class BankReconciliationApp:
     # 载入示例数据（优先读仓库 CSV，缺失时用内置账套——打包 exe 后依然可用）
     # --------------------------------------------------------
     def load_sample_data(self):
-        if not messagebox.askyesno("载入示例数据", "将清空当前数据并载入教材示例账套（表3-14/3-15/3-16），继续？"):
+        if not messagebox.askyesno("载入示例数据", "将清空当前数据并载入内置示例账套，继续？"):
             return
         self.records.clear()
         self.result = None
@@ -704,7 +704,7 @@ class BankReconciliationApp:
         adj_bank = round(bank_bal + e_recv - e_pay, 2)
 
         ws.merge_cells("A1:E1")
-        ws["A1"] = "表3-14  " + title
+        ws["A1"] = title
         ws["A1"].font = Font(name="黑体", size=14, bold=True)
         ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
 
@@ -756,8 +756,8 @@ class BankReconciliationApp:
 
     def _write_flow_sheet(self, ws, source):
         ws.merge_cells("A1:F1")
-        ws["A1"] = ("表3-15  单位银行存款日记账" if source == bc.SRC_ENTERPRISE
-                    else "表3-16  银行对账单")
+        ws["A1"] = ("单位银行存款日记账" if source == bc.SRC_ENTERPRISE
+                    else "银行对账单")
         ws["A1"].font = Font(name="黑体", size=13, bold=True)
         ws["A1"].alignment = Alignment(horizontal="center")
         thin = Side(border_style="thin", color="333333")
