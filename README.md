@@ -223,5 +223,5 @@ git add . && git commit -m "说明本次改动" && git push
 4. **界面为单机版**：无多人协作、无数据库。改进方向：SQLite 存储多人账套。
 
 ---
-
+**作者：更求多杰 九江学院管理学院
 *技术栈：Python 3 · Tkinter · openpyxl · pyinstaller · git / GitHub*
